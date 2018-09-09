@@ -1,0 +1,23 @@
+{
+  "name": "bikes-from-craigslist",
+  "version": "1.0.0",
+  "description": "To scrape and find bikes on craigslist",
+  "main": "bikeScraper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jtung23/bikes-from-craigslist.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jtung23/bikes-from-craigslist/issues"
+  },
+  "homepage": "https://github.com/jtung23/bikes-from-craigslist#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "request": "^2.88.0"
+  }
+}

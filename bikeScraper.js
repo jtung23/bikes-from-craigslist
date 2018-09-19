@@ -3,9 +3,11 @@ const stringify = require('csv-stringify');
 const fs = require('fs');
 // const testStrings = require('./testStrings.js');
 
-const query = ['cyclocross']
-const maxPrice= 1000
-const minFrameSize = 60 // in cm,
+const query = ['https://sfbay.craigslist.org/search/bia?s=0']
+//  'https://sfbay.craigslist.org/search/bia?s=120', 'https://sfbay.craigslist.org/search/bia?s=240']
+const maxPrice= 600
+const cmminFrameSize = 60
+const inminFrameSize = 23
 
 const priceChecker = (price) => { // checks if theres OBO or if the price is > 1000
     if (price === null) {
@@ -22,27 +24,29 @@ const priceChecker = (price) => { // checks if theres OBO or if the price is > 1
 }
 
 const attrChecker = (attrGroup) => { //checks attrgroup & returns true if meets min frame size
-    if (!attrGroup.includes('frame size')) { // if no frame size in attrgroup then return true anyway
-        return true
-    }
-    let frameIndex = attrGroup.indexOf('frame') // gets index of framesize
-    let frameSection = attrGroup.slice(frameIndex+15,frameIndex+20) //sections off framesize area
-    let iso = frameSection.indexOf('<') // gets index of <b> tag
-    let num = frameSection.slice(0, iso) // isolates the size only
     
     // parseInt of a str is falsey, NaN
-    if (parseInt(num[0])) {
+    if (parseInt(attrGroup[0])) {
         // if first value is a number then proceed as e.g. 60cm
-        let int = parseInt(num.slice(0,2))
-        if (int < minFrameSize) {
-            return false
+        let int = parseInt(attrGroup.slice(0,2))
+        console.log(int)
+        if (attrGroup.includes('"') || attrGroup.includes('in')) {
+            if (int < inminFrameSize) {
+                return false
+            } else {
+                return true
+            } 
         } else {
-            return true
+            if (int < cmminFrameSize) {
+               return false
+            } else {
+               return true
+            }
         }
     } else {
-        // not num so assume is e.g. xxl
-        num = num.toLowerCase();
-        if (num === 'xxl' || num === 'xxxl') {
+        // not attrGroup so assume is e.g. xxl
+        attrGroup = attrGroup.toLowerCase();
+        if (attrGroup.includes('xl') || attrGroup.includes('xxl') || attrGroup.includes('large')) {
             return true
         } else {
             return false
@@ -58,7 +62,7 @@ const removeTags = string =>{
 const scrape = async (val) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.goto(`https://sfbay.craigslist.org/search/bia?query=${val}`, {
+    await page.goto(val, {
         timeout: 3000000
     });
     await page.waitFor(1000);
@@ -75,17 +79,21 @@ const scrape = async (val) => {
     let final = []
     for (link of links) {
         await page.goto(link)
-        await page.waitForSelector('#titletextonly')
+        await page.waitForSelector('body')
 
         const obj = await page.evaluate(() => {
             let price = document.querySelector('.price') ? document.querySelector('.price').innerText : null
             let attrGroup = document.querySelector('p.attrgroup') ? document.querySelector('p.attrgroup').innerHTML : null
             attrGroup = attrGroup.replace(/\s+/g,' ').trim();
+            let frameIndex = attrGroup.indexOf('frame') // gets index of framesize
+            let frameSection = attrGroup.slice(frameIndex+15,frameIndex+30) //sections off framesize area
+            let iso = frameSection.indexOf('<') // gets index of <b> tag
+            let num = frameSection.slice(0, iso) // isolates the size only
             let postBody = document.querySelector('#postingbody') ? document.querySelector('#postingbody').innerText : null
             let title = document.querySelector('#titletextonly') ? document.querySelector('#titletextonly').innerText : null
             return {
                 price,
-                attrGroup,
+                attrGroup: num,
                 postBody,
                 title
             }
@@ -95,12 +103,9 @@ const scrape = async (val) => {
             obj['link'] = link
             let checkedPrice= priceChecker(obj.price) // returns true or false
             let checkedAttr = attrChecker(obj.attrGroup) // returns true or false
-            obj.attrGroup = removeTags(obj.attrGroup) // removes html tags
-            if (!checkedPrice) {
-                continue
-            } else if (!checkedAttr) {
-                continue
-            } else {
+            // obj.attrGroup = removeTags(obj.attrGroup) // removes html tags
+            console.log(checkedPrice, checkedAttr)
+            if (checkedPrice && checkedAttr) {
                 final.push(obj)
             }
         }
@@ -110,7 +115,7 @@ const scrape = async (val) => {
     browser.close();
 
     stringify(final, (err, output) =>{
-        fs.appendFile('./formList.csv', output, 'utf8', function (err) {
+        fs.appendFile('./bikeList.csv', output, 'utf8', function (err) {
             if (err) {
             console.log('Some error occured - file either not saved or corrupted file saved.');
             } else{

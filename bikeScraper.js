@@ -2,9 +2,10 @@ const puppeteer = require('puppeteer');
 const stringify = require('csv-stringify');
 const fs = require('fs');
 // const testStrings = require('./testStrings.js');
-
-const query = ['https://sfbay.craigslist.org/search/bia?s=0']
-//  'https://sfbay.craigslist.org/search/bia?s=120', 'https://sfbay.craigslist.org/search/bia?s=240']
+const query = ['https://sfbay.craigslist.org/search/bia?s=0', 'https://sfbay.craigslist.org/search/bia?s=120', 'https://sfbay.craigslist.org/search/bia?s=240']
+// const query = ['https://sfbay.craigslist.org/search/bia?s=0']
+// const query = ['https://sfbay.craigslist.org/search/bia?s=120']
+// const query = ['https://sfbay.craigslist.org/search/bia?s=240']
 const maxPrice= 600
 const cmminFrameSize = 60
 const inminFrameSize = 23

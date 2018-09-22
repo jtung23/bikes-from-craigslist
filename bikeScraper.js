@@ -30,7 +30,7 @@ const attrChecker = (attrGroup) => { //checks attrgroup & returns true if meets 
     if (parseInt(attrGroup[0])) {
         // if first value is a number then proceed as e.g. 60cm
         let int = parseInt(attrGroup.slice(0,2))
-        console.log(int)
+        // console.log(int)
         if (attrGroup.includes('"') || attrGroup.includes('in')) {
             if (int < inminFrameSize) {
                 return false
@@ -45,13 +45,14 @@ const attrChecker = (attrGroup) => { //checks attrgroup & returns true if meets 
             }
         }
     } else {
+        return false
         // not attrGroup so assume is e.g. xxl
-        attrGroup = attrGroup.toLowerCase();
-        if (attrGroup.includes('xl') || attrGroup.includes('xxl') || attrGroup.includes('large')) {
-            return true
-        } else {
-            return false
-        }
+        // attrGroup = attrGroup.toLowerCase();
+        // if (attrGroup.includes('xl') || attrGroup.includes('xxl') || attrGroup.includes('large')) {
+        //     return true
+        // } else {
+        //     return false
+        // }
     }
 }
 
@@ -93,19 +94,19 @@ const scrape = async (val) => {
             let postBody = document.querySelector('#postingbody') ? document.querySelector('#postingbody').innerText : null
             let title = document.querySelector('#titletextonly') ? document.querySelector('#titletextonly').innerText : null
             return {
+                title,
                 price,
                 attrGroup: num,
                 postBody,
-                title
+                link: window.location.href
             }
         })
 
         if (obj) {
-            obj['link'] = link
             let checkedPrice= priceChecker(obj.price) // returns true or false
             let checkedAttr = attrChecker(obj.attrGroup) // returns true or false
             // obj.attrGroup = removeTags(obj.attrGroup) // removes html tags
-            console.log(checkedPrice, checkedAttr)
+            // console.log(checkedPrice, checkedAttr)
             if (checkedPrice && checkedAttr) {
                 final.push(obj)
             }
